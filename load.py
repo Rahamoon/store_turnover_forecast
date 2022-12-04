@@ -21,26 +21,6 @@ def split_data(data):
     return train_data, val_data, test_data
 
 
-def normalize_data(turnover: pd.Series, data_mean=None, data_std=None):
-    """
-        Normalize the turnover values
-    Args:
-        turnover: turnover values
-        data_mean: mean of the turnover if precomputed
-        data_std: standard deviation of the turnover if precomputed
-
-    Returns:
-        dataframe with normalized turnover
-    """
-    data = turnover.copy(deep=True)
-    if data_mean is None:
-        data_mean = data.mean()
-    if data_std is None:
-        data_std = data.std()
-    data = (data - data_mean) / data_std
-    return data, data_mean, data_std
-
-
 def generate_features(data: pd.DataFrame):
     """
         generate datetime features from the data
