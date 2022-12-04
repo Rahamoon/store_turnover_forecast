@@ -24,19 +24,19 @@ def build_model(output_size, normalization_layer):
 
 def compile_fit_model(model, train, val, label_col='turnover', patience=2, batch_size=32, epochs=10, model_save_path=None):
     """
-
+        Compile and train the model
     Args:
-        model:
-        train:
-        val:
-        label_col:
-        patience:
-        batch_size:
-        epochs:
-        model_save_path:
+        model: tensorflow model
+        train: train data set
+        val: validation data set
+        label_col: label column to predict
+        patience: number of epochs of steady val_loss for triggering training stop
+        batch_size: number of samples per batch
+        epochs: number of epochs
+        model_save_path: path to save the model file
 
     Returns:
-
+        history: model training logs
     """
     if model_save_path is None:
         model_save_path = os.path.join(os.path.dirname(__file__), 'models')
@@ -54,22 +54,17 @@ def compile_fit_model(model, train, val, label_col='turnover', patience=2, batch
     model.compile(loss=tf.keras.losses.MeanSquaredError(),
                   optimizer=tf.keras.optimizers.Adam(),
                   metrics=[tf.keras.metrics.MeanAbsoluteError()])
-    if isinstance(train, tf.data.Dataset):
-        history = model.fit(train, epochs=epochs,
-                            validation_data=val,
-                            callbacks=[early_stopping, model_checkpoint_callback],
-                            verbose=2)
-    else:
-        history = model.fit(x=np.array(train.drop(labels=label_col, axis=1)),
-                            y=np.array(train[label_col]),
-                            epochs=epochs,
-                            validation_data=(
-                                np.array(val.drop(labels=label_col, axis=1)),
-                                np.array(val[label_col])
-                            ),
-                            callbacks=[early_stopping, model_checkpoint_callback],
-                            batch_size=batch_size,
-                            verbose=2)
+
+    history = model.fit(x=np.array(train.drop(labels=label_col, axis=1)),
+                        y=np.array(train[label_col]),
+                        epochs=epochs,
+                        validation_data=(
+                            np.array(val.drop(labels=label_col, axis=1)),
+                            np.array(val[label_col])
+                        ),
+                        callbacks=[early_stopping, model_checkpoint_callback],
+                        batch_size=batch_size,
+                        verbose=2)
     return history
 
 
