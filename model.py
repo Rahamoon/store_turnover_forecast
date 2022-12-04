@@ -22,7 +22,7 @@ def build_model(output_size, normalization_layer):
     ])
 
 
-def compile_fit_model(model, train, val, label_col='turnover', patience=2, batch_size=32, epochs=10, model_save_path=None):
+def compile_fit_model(model, train, val, label_col='turnover', patience=2, batch_size=32, epochs=10, lr=0.1, model_save_path=None):
     """
         Compile and train the model
     Args:
@@ -51,8 +51,8 @@ def compile_fit_model(model, train, val, label_col='turnover', patience=2, batch
         mode='min',
         save_best_only=True)
 
-    model.compile(loss=tf.keras.losses.MeanSquaredError(),
-                  optimizer=tf.keras.optimizers.Adam(),
+    model.compile(loss=tf.keras.losses.MeanAbsoluteError(),
+                  optimizer=tf.keras.optimizers.Adam(learning_rate=lr),
                   metrics=[tf.keras.metrics.MeanAbsoluteError()])
 
     history = model.fit(x=np.array(train.drop(labels=label_col, axis=1)),
