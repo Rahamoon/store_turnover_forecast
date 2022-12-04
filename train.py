@@ -18,16 +18,16 @@ def train_linear(model_save_path=None, test=True):
 
     features = ['dpt_num_department_73', 'dpt_num_department_88',
                 'dpt_num_department_117', 'dpt_num_department_127',
-                'but_num_business_unit', 'week_sin', 'week_cos',
+                'week_sin', 'week_cos',
                 'but_latitude', 'but_longitude']
     label_col = 'turnover'
 
     # normalization layer
-    norm_layer = tf.keras.layers.experimental.preprocessing.Normalization()
-    norm_layer.adapt(train_data[features])
+    norm_layer = tf.keras.layers.Normalization(axis=-1)
+    norm_layer.adapt(np.array(train_data[features]))
 
     linear_model = build_model(output_size=1, normalization_layer=norm_layer)
-
+    logger.info(linear_model.summary())
     history = compile_fit_model(linear_model, train_data[features + [label_col]], val_data[features + [label_col]],
                                 label_col=label_col,
                                 batch_size=32,
@@ -37,7 +37,7 @@ def train_linear(model_save_path=None, test=True):
     if test:
         performance = linear_model.evaluate(x=np.array(test_data[features], dtype=np.float),
                                             y=np.array(test_data[label_col]), verbose=2)
-        logger.warning(f'Model performance on test data: "test_mean_squared_error"={performance[0]}')
+        logger.warning(f'Model performance on test data: "test_mean_absolute_error"={performance[0]}')
     plot_metrics(history, os.path.join(model_save_path, 'model_training_metrics.png'))
 
 
