@@ -9,7 +9,7 @@ from model import build_model, compile_fit_model, plot_metrics
 logger = logging.getLogger(__name__)
 
 
-def train_linear(model_save_path=None, test=True):
+def train_linear(learning_rate=0.1, batch_size=32, epochs=10, model_save_path=None, test=True):
     data = load_data()
 
     data = generate_features(data)
@@ -30,8 +30,9 @@ def train_linear(model_save_path=None, test=True):
     logger.info(linear_model.summary())
     history = compile_fit_model(linear_model, train_data[features + [label_col]], val_data[features + [label_col]],
                                 label_col=label_col,
-                                batch_size=32,
-                                epochs=25,
+                                batch_size=batch_size,
+                                epochs=epochs,
+                                lr=learning_rate,
                                 model_save_path=model_save_path)
 
     if test:
