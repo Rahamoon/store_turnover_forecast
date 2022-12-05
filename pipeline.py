@@ -27,7 +27,7 @@ def model_train_pipeline(model_save_path=None):
     train_x, train_y = transform_data(data, info)
 
     logger.warning("training..")
-    history, test_perf = train_model(train_x, train_y, model_type=MODEL_TYPE, model_save_path=model_save_path)
+    history = train_model(train_x, train_y, model_type=MODEL_TYPE, model_save_path=model_save_path)
 
 
 def model_predict(model_path, result_save_path=None):

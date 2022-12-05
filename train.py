@@ -18,7 +18,7 @@ def build_linear_model(output_size, normalization_layer):
 
 def build_lstm_model(output_size):
     return tf.keras.Sequential([
-        tf.keras.layers.LSTM(32, return_sequences=True),
+        tf.keras.layers.LSTM(32),
         tf.keras.layers.Dense(units=output_size)
     ])
 
@@ -40,6 +40,7 @@ def compile_fit_model(model, train_x, train_y,
     Returns:
         history: model training logs
     """
+    logger.warning(f"train_x shape: {train_x.shape}, train_y shape: {train_y.shape}")
     if model_save_path is None:
         model_save_path = os.path.join(os.path.dirname(__file__), 'models')
     logger.info(f"Model will be saved in {model_save_path}")
@@ -53,7 +54,7 @@ def compile_fit_model(model, train_x, train_y,
         mode='min',
         save_best_only=True)
 
-    model.compile(loss=tf.keras.losses.MeanAbsoluteError(),
+    model.compile(loss=tf.keras.losses.Huber(),
                   optimizer=tf.keras.optimizers.Adam(learning_rate=lr),
                   metrics=[tf.keras.metrics.MeanAbsoluteError()])
 
