@@ -47,5 +47,14 @@ def model_predict(model_path, result_save_path=None):
     return data
 
 
+def pipeline(mode="train", model_path=None, results_path=None):
+    if mode == "train":
+        model_train_pipeline(model_path)
+    elif mode == "serve":
+        model_predict(model_path, results_path)
+    else:
+        raise ValueError(f"Unknown mode {mode}")
+
+
 if __name__ == "__main__":
-    Fire(model_train_pipeline)
+    Fire(pipeline)

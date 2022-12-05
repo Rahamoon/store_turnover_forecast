@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 def build_linear_model(output_size, normalization_layer):
     return tf.keras.Sequential([
         normalization_layer,
+        tf.keras.layers.Dense(units=16),
         tf.keras.layers.Dense(units=output_size)
     ])
 
