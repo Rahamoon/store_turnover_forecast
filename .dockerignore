@@ -1,0 +1,6 @@
+.git
+.cache
+.idea
+/README.md
+/notebooks/
+/models/
