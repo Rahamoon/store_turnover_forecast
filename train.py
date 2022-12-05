@@ -1,46 +1,111 @@
 import logging
+import os
 
+import matplotlib.pyplot as plt
 import tensorflow as tf
-from fire import Fire
 
-from load import *
-from model import build_model, compile_fit_model, plot_metrics
+from globals import *
 
 logger = logging.getLogger(__name__)
 
 
-def train_linear(learning_rate=0.1, batch_size=32, epochs=10, model_save_path=None, test=True):
-    data = load_data()
+def build_linear_model(output_size, normalization_layer):
+    return tf.keras.Sequential([
+        normalization_layer,
+        tf.keras.layers.Dense(units=output_size)
+    ])
 
-    data = generate_features(data)
 
-    train_data, val_data, test_data = split_data(data)
+def build_lstm_model(output_size):
+    return tf.keras.Sequential([
+        tf.keras.layers.LSTM(32, return_sequences=True),
+        tf.keras.layers.Dense(units=output_size)
+    ])
 
-    features = ['dpt_num_department_73', 'dpt_num_department_88',
-                'dpt_num_department_117', 'dpt_num_department_127',
-                'week_sin', 'week_cos',
-                'but_latitude', 'but_longitude']
-    label_col = 'turnover'
 
-    # normalization layer
-    norm_layer = tf.keras.layers.Normalization(axis=-1)
-    norm_layer.adapt(np.array(train_data[features]))
+def compile_fit_model(model, train_x, train_y,
+                      patience=2, batch_size=32, epochs=10, lr=0.1,
+                      model_save_path=None):
+    """
+        Compile and train the model
+    Args:
+        model: tensorflow model
+        train_x: train data set features
+        train_y: train data set label
+        patience: number of epochs of steady val_loss for triggering training stop
+        batch_size: number of samples per batch
+        epochs: number of epochs
+        model_save_path: path to save the model file
 
-    linear_model = build_model(output_size=1, normalization_layer=norm_layer)
-    logger.info(linear_model.summary())
-    history = compile_fit_model(linear_model, train_data[features + [label_col]], val_data[features + [label_col]],
-                                label_col=label_col,
-                                batch_size=batch_size,
-                                epochs=epochs,
-                                lr=learning_rate,
+    Returns:
+        history: model training logs
+    """
+    if model_save_path is None:
+        model_save_path = os.path.join(os.path.dirname(__file__), 'models')
+    logger.info(f"Model will be saved in {model_save_path}")
+    early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
+                                                      patience=patience,
+                                                      mode='min')
+
+    model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+        filepath=model_save_path,
+        monitor='val_loss',
+        mode='min',
+        save_best_only=True)
+
+    model.compile(loss=tf.keras.losses.MeanAbsoluteError(),
+                  optimizer=tf.keras.optimizers.Adam(learning_rate=lr),
+                  metrics=[tf.keras.metrics.MeanAbsoluteError()])
+
+    history = model.fit(x=train_x,
+                        y=train_y,
+                        epochs=epochs,
+                        validation_split=0.3,
+                        callbacks=[early_stopping, model_checkpoint_callback],
+                        batch_size=batch_size,
+                        verbose=2)
+    return history
+
+
+def train_model(train_x, train_y, model_type="lstm", model_save_path=None):
+    """
+
+    Args:
+        train_x: train input in numpy array format
+        train_y: train label in numpy array format
+        model_type: "lstm" | "linear
+        model_save_path: path to save the model
+
+    Returns:
+
+    """
+
+    if model_type == 'linear':
+        # normalization layer
+        norm_layer = tf.keras.layers.Normalization(axis=-1)
+        norm_layer.adapt(train_x)
+        # train
+        model = build_linear_model(output_size=1, normalization_layer=norm_layer)
+    elif model_type == 'lstm':
+        model = build_lstm_model(output_size=OUTPUT_WEEKS)
+
+    history = compile_fit_model(model,
+                                train_x, train_y,
+                                batch_size=BATCH_SIZE,
+                                epochs=EPOCHS,
+                                lr=LEARNING_RATE,
                                 model_save_path=model_save_path)
 
-    if test:
-        performance = linear_model.evaluate(x=np.array(test_data[features], dtype=np.float),
-                                            y=np.array(test_data[label_col]), verbose=2)
-        logger.warning(f'Model performance on test data: "test_mean_absolute_error"={performance[0]}')
     plot_metrics(history, os.path.join(model_save_path, 'model_training_metrics.png'))
+    return history
 
 
-if __name__ == "__main__":
-    Fire(train_linear)
+def plot_metrics(history, save_path=None):
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    if save_path is not None:
+        plt.savefig(save_path)
