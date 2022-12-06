@@ -26,5 +26,10 @@ docker build -t {image_tag} {project_path}
 
 Run the docker container for training:
 ```sh
-docker run -v {model_local_path}:/model {image_tag} --model_path /model
+docker run -v {model_local_path}:/train {image_tag} --mode train --model_path /train/model
+```
+
+Run the docker container for predicting:
+```sh
+docker run -v {folder_path}:/serve turnover_forecast --mode serve --model_path /serve/model  --result_path /serve/data
 ```

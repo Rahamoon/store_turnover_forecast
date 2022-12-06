@@ -2,12 +2,13 @@ import logging
 import os.path
 
 import numpy as np
+import pandas as pd
 import tensorflow as tf
 from fire import Fire
 
 from load import load_data
 from train import train_model
-from transform import transform_data
+from transform import transform_data, generate_features
 from globals import MODEL_TYPE, FEATURES
 
 logger = logging.getLogger(__name__)
@@ -39,7 +40,13 @@ def model_predict(model_path, result_save_path=None):
 
     """
     data, info = load_data('test')
-    train_x, train_y = transform_data(data, info)
+    data = data.merge(info, on='but_num_business_unit', how='left')
+
+    data['date'] = pd.to_datetime(data['day_id'], format='%Y-%m-%d')
+
+    # add new features
+    data = generate_features(data)
+
     model = tf.keras.models.load_model(model_path)
     data['predicted_turnover'] = model.predict(x=np.array(data[FEATURES])).flatten()
     if result_save_path is not None:
