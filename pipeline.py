@@ -50,7 +50,7 @@ def model_predict(model_path, result_save_path=None):
     model = tf.keras.models.load_model(model_path)
     data['predicted_turnover'] = model.predict(x=np.array(data[FEATURES])).flatten()
     if result_save_path is not None:
-        data.to_csv(os.path.join(result_save_path, 'predictions.csv'), index_col=0)
+        data.to_csv(os.path.join(result_save_path, 'predictions.csv'))
     return data
 
 

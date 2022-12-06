@@ -31,5 +31,5 @@ docker run -v {model_local_path}:/train {image_tag} --mode train --model_path /t
 
 Run the docker container for predicting:
 ```sh
-docker run -v {folder_path}:/serve turnover_forecast --mode serve --model_path /serve/model  --result_path /serve/data
+docker run -v {folder_path}:/serve turnover_forecast --mode serve --model_path /serve/model  --results_path /serve/data
 ```
